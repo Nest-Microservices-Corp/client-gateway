@@ -14,11 +14,12 @@ export class RpcCustomExceptionFilter implements ExceptionFilter {
 
     const ctx = host.switchToHttp();
     const response =  ctx.getResponse();
-    const rpcError = exception.getError();
+    const rpcError = exception.getError() as any;
 
     const messageError = rpcError.toString();
     
     console.log('messageError ::: ', messageError);
+    console.log('rpcError ::: ', {rpcError});
 
     if( messageError.includes('Empty response') ) {
       //FIXME: notificar a los admin
@@ -35,20 +36,20 @@ export class RpcCustomExceptionFilter implements ExceptionFilter {
       if( typeof status === 'string' ) {
         return response.status( HttpStatus.BAD_REQUEST ).json({
           status: HttpStatus.BAD_REQUEST,
-          message: rpcError
+          message: rpcError.message
         });
       }
 
       const errorObj: IError = rpcError as IError;
 
-      return response.status( errorObj.status ).json(rpcError);
+      return response.status( errorObj.status ).json({
+        status: HttpStatus.BAD_REQUEST,
+        message: rpcError.message
+      });
 
     }
       
-    return response.status( HttpStatus.BAD_REQUEST ).json({
-      status: HttpStatus.BAD_REQUEST,
-      message: {rpcError}
-    });
+    return response.status( HttpStatus.BAD_REQUEST ).json(rpcError.error);
 
   }
 
